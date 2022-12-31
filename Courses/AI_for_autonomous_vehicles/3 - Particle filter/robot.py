@@ -131,4 +131,14 @@ for i in range(N):
     p3.append(p[index])
 p = p3
 
+# Programming excercise 7:
+def eval(r, p):
+    sum = 0.0
+    for i in range(len(p)):
+        dx = (p[i].x - r.x + (world_size/2.0)) % world_size - ((world_size/2.0))
+        dy = (p[i].y - r.y + (world_size/2.0)) % world_size - ((world_size/2.0))
+        error = sqrt(dx*dx + dy*dy)
+        sum += error
+    return sum/float(len(p))
+
 print(eval(myrobot, p))
