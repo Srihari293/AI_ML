@@ -39,6 +39,12 @@ def smooth(path, weight_data = 0.5, weight_smooth = 0.2, tolerance = 0.000001):
         if totalChange < tolerance:
             break
     return newpath # Leave this line for the grader!
-
 # printpaths(path,smooth(path))
-# plt.scatter(path[:, 0], path[:, 1], c=path[:, 2], cmap='hot')
+
+# # Visualization
+# smoothpath_arr = np.asarray(smooth(path))
+# path_arr = np.asarray(path)
+# for i in range(len(path)):
+#     plt.scatter(path_arr[i][0], path_arr[i][1], c = "red")
+#     plt.scatter(smoothpath_arr[i][0], smoothpath_arr[i][1], c = "blue")
+# plt.show()
