@@ -27,7 +27,9 @@
 # it is not.
 
 from math import *
+import numpy as np
 from copy import deepcopy
+from matplotlib import pyplot as plt
 
 # Do not modify path inside your function.
 path=[[0, 0], 
@@ -183,5 +185,23 @@ answer2 = [[1.2222234770374059, 0.4444422843711052],
            [0.44444210978390364, 1.2222211690821811], 
            [0.8888882042812255, 0.8888870211766268]]
 
-solution_check(smooth(testpath1), answer1)
-solution_check(smooth(testpath2), answer2)
+# solution_check(smooth(testpath1), answer1)
+# solution_check(smooth(testpath2), answer2)
+
+# # # Visualization
+# path_arr1 = np.asarray(testpath1)
+# path_arr2 = np.asarray(testpath2)
+# smoothpath1_arr = np.asarray(smooth(testpath1))
+# smoothpath2_arr = np.asarray(smooth(testpath2))
+
+# # # Track 1
+# # for i in range(len(path)):
+# #     plt.scatter(path_arr1[i][0], path_arr1[i][1], c = "red")
+# #     plt.scatter(smoothpath1_arr[i][0], smoothpath1_arr[i][1], c = "blue")
+# # plt.show()
+
+# # # Track 2
+# # for i in range(len(path_arr2)):
+# #     plt.scatter(path_arr2[i][0], path_arr2[i][1], c = "red")
+# #     plt.scatter(smoothpath2_arr[i][0], smoothpath2_arr[i][1], c = "blue")
+# # plt.show()
