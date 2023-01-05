@@ -1,8 +1,6 @@
 # Plot the ticks from the left and right motor.
 # 01_a_plot_motor_ticks.py
-# Srihari Sridhar, 04-01-22
 from pylab import *
-
 if __name__ == '__main__':
     # Read all ticks of left and right motor.
     # Format is:
