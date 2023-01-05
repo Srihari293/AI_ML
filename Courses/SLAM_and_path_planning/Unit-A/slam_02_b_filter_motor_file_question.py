@@ -5,7 +5,6 @@
 # - result is now output to a file, as "F" ("filtered") records.
 #
 # 02_b_filter_motor_file
-# Claus Brenner, 09 NOV 2012
 from math import sin, cos, pi
 from lego_robot import *
 
@@ -60,7 +59,7 @@ if __name__ == '__main__':
     ticks_to_mm = 0.349
 
     # Measured width of the robot (wheel gauge), in mm.
-    robot_width = 150.0
+    robot_width = 173.0
 
     # Measured start position.
     pose = (1850.0, 1897.0, 213.0 / 180.0 * pi)
