@@ -15,6 +15,8 @@ s_record_has_count = True
 # L landmark (reference landmark, fixed)
 # D detected landmark, in the scanner's coordinate system
 #
+
+
 class LegoLogfile(object):
     def __init__(self):
         self.reference_positions = []
@@ -43,14 +45,16 @@ class LegoLogfile(object):
         f = open(filename)
         for l in f:
             sp = l.split()
+            if len(sp) == 0:
+                break
             # P is the reference position.
             # File format: P timestamp[in ms] x[in mm] y[in mm]
             # Stored: A list of tuples [(x, y), ...] in reference_positions.
             if sp[0] == 'P':
                 if first_reference_positions:
                     self.reference_positions = []
-                    first_reference_positions = False 
-                self.reference_positions.append( (int(sp[2]), int(sp[3])) )
+                    first_reference_positions = False
+                self.reference_positions.append((int(sp[2]), int(sp[3])))
 
             # S is the scan data.
             # File format:
@@ -103,7 +107,7 @@ class LegoLogfile(object):
                 if first_filtered_positions:
                     self.filtered_positions = []
                     first_filtered_positions = False
-                self.filtered_positions.append( tuple( map(float, sp[1:])) )
+                self.filtered_positions.append(tuple(map(float, sp[1:])))
 
             # L is landmark. This is actually background information, independent
             # of time.
@@ -116,8 +120,8 @@ class LegoLogfile(object):
                     self.landmarks = []
                     first_landmarks = False
                 if sp[1] == 'C':
-                    self.landmarks.append( tuple(['C'] + map(float, sp[2:])) )
-                    
+                    self.landmarks.append(tuple(['C'] + list(map(float, sp[2:]))))
+
             # D is detected landmarks (in each scan).
             # File format: D <type> info...
             # Supported types:
@@ -129,9 +133,10 @@ class LegoLogfile(object):
                     if first_detected_cylinders:
                         self.detected_cylinders = []
                         first_detected_cylinders = False
-                    cyl = map(float, sp[2:])
-                    self.detected_cylinders.append([(cyl[2*i], cyl[2*i+1]) for i in range(len(cyl)/2)])
-
+                    cyl = list(map(float, sp[2:]))
+                    
+                    self.detected_cylinders.append(
+                        [(cyl[2*i], cyl[2*i+1]) for i in range(len(list(cyl))//2)])
         f.close()
 
     def size(self):
@@ -141,7 +146,7 @@ class LegoLogfile(object):
                    len(self.filtered_positions), len(self.detected_cylinders))
 
     @staticmethod
-    def beam_index_to_angle(i, mounting_angle = -0.06981317007977318):
+    def beam_index_to_angle(i, mounting_angle=-0.06981317007977318):
         """Convert a beam index to an angle, in radians."""
         return (i - 330.0) * 0.006135923151543 + mounting_angle
 
@@ -162,7 +167,7 @@ class LegoLogfile(object):
                     s += " %d" % idx
             else:
                 s += " | (no pole indices)"
-                    
+
         if i < len(self.motor_ticks):
             s += " | motor: %d %d" % self.motor_ticks[i]
 
