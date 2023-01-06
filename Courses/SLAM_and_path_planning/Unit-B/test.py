@@ -7,33 +7,33 @@
 # Claus Brenner, 14 NOV 2012
 from lego_robot import *
 from slam_b_library import filter_step
-from slam_04_a_project_landmarks import compute_scanner_cylinders, write_cylinders
-from math import sqrt
+from slam_04_a_project_landmarks import\
+     compute_scanner_cylinders, write_cylinders
+import numpy as np
 
 # Given a list of cylinders (points) and reference_cylinders:
 # For every cylinder, find the closest reference_cylinder and add
 # the index pair (i, j), where i is the index of the cylinder, and
 # j is the index of the reference_cylinder, to the result list.
 # This is the function developed in slam_04_b_find_cylinder_pairs.
+
+def compute_dist(a, b):
+    x = a[0] - b[0]
+    y = a[1] - b[1]
+    return np.sqrt(x*x + y*y)
+
 def find_cylinder_pairs(cylinders, reference_cylinders, max_radius):
     cylinder_pairs = []
-    for i, cyl in enumerate(cylinders):
-        x, y = cyl
-        closest_cyl = None
-        best_distance_sqr = max_radius**2
 
-        for j, ref_cyl in enumerate(reference_cylinders):
-            dx = ref_cyl[0] - x
-            dy = ref_cyl[1] - y
-            distance_sqrd = dx**2 + dy**2
-            if distance_sqrd < best_distance_sqr:
-                best_distance_sqr = distance_sqrd
-                closest_cyl = j
-        
-        if closest_cyl:
-            cylinder_pairs.append((i, closest_cyl))
+    # --->>> Insert here your code from the last question,
+    # slam_04_b_find_cylinder_pairs.
+    for i, c in enumerate(cylinders):
+        for j, r in enumerate(reference_cylinders):
+            if compute_dist(c, r) < max_radius:
+                cylinder_pairs.append((i, j))
 
     return cylinder_pairs
+# cylinder_pairs is a list of tuples containing index of detected cylinder and its corresponding reference cylinder
 
 # Given a point list, return the center of mass.
 def compute_center(point_list):
@@ -53,40 +53,39 @@ def compute_center(point_list):
 # i.e., the rotation angle is not given in radians, but rather in terms
 # of the cosine and sine.
 def estimate_transform(left_list, right_list, fix_scale = False):
-    ll = 0 
-    rr = 0
-    cs = 0
-    ss = 0
     # Compute left and right center.
     lc = compute_center(left_list)
     rc = compute_center(right_list)
 
-    r_dash = [(r[0] - rc[0], r[1] - rc[1]) for r in right_list]
-    l_dash = [(l[0] - lc[0], l[1] - lc[1]) for l in left_list]
-
     # --->>> Insert here your code to compute lambda, c, s and tx, ty.
-    for i in range(len(l_dash)):
-        l, r = l_dash[i], r_dash[i]
-        cs += r[0]*l[0] + r[1]*l[1]
-        ss += -r[0]*l[1] + r[1]*l[0] 
-        rr += r[0]*r[0] + r[1]*r[1]
-        ll += l[0]*l[0] + l[1]*l[1]
-    
-    if ll == 0. or rr == 0.:
+    left_prime = []
+    right_prime = []
+    for l, r in zip(left_list, right_list):
+        # l = (x, y) coordinate of i_th detected world cylinder
+        # r = (x, y) coordinate of i_th reference cylinder
+        l_prime = (l[0] - lc[0], l[1] - lc[1])
+        r_prime = (r[0] - lc[0], r[1] - lc[1])
+        left_prime.append(l_prime)  # create list of tuples containing reduced coordinates of each cylinder in left_list
+        right_prime.append(r_prime) # create list of tuples containing reduced coordinate of each cylinder in right_list
+
+    n = len(left_list)  # not right_list since not every detected cylinder finds a match
+    cs, ss, rr, ll = 0, 0, 0, 0
+    for i in range(n):
+        cs += (right_prime[i][0] * left_prime[i][0] + right_prime[i][1] * left_prime[i][1])
+        ss += (-right_prime[i][0] * left_prime[i][1] + right_prime[i][1] * left_prime[i][0])
+        rr += (right_prime[i][0] * right_prime[i][0] + right_prime[i][1] * right_prime[i][1])
+        ll += (left_prime[i][0] * left_prime[i][0] + left_prime[i][1] * left_prime[i][1])
+
+    # safeguard against exceptionally high value of lambda
+    if ((ll - 0.0) < 0.00001):
         return None
-    
-    # Lambda calculation
-    if (fix_scale == True):
-        la = 1
-    else:
-        la = sqrt(rr/ll)
-    
-    norm = sqrt(cs**2 + ss**2)
-    c = cs/norm
-    s = ss/norm
-    tx = rc[0] - la*(c*lc[0] - s*lc[1])
-    ty = lc[0] - la*(s*lc[0] + c*lc[1])
-    return la, c, s, tx, ty
+    la = np.sqrt(rr / ll)
+    cs_sum = np.sqrt(cs * cs + ss * ss)
+    c = cs / cs_sum
+    s = ss / cs_sum
+    tx = rc[0] - la * (c * lc[0] - s * lc[1])
+    ty = rc[1] - la * (s * lc[0] + c * lc[1])
+    return la, c, s, tx, ty    # these values are returned as a tuple of 5 elements
 
 # Given a similarity transformation:
 # trafo = (scale, cos(angle), sin(angle), x_translation, y_translation)
@@ -123,42 +122,50 @@ if __name__ == '__main__':
     logfile.read(r"D:\Study\Code\Github\AI_ML\Courses\SLAM_and_path_planning\Unit-B\robot4_scan.txt")
 
     # Also read the reference cylinders (this is our map).
-    logfile.read("robot_arena_landmarks.txt")
+    logfile.read(r"D:\Study\Code\Github\AI_ML\Courses\SLAM_and_path_planning\Unit-B\robot_arena_landmarks.txt")
     reference_cylinders = [l[1:3] for l in logfile.landmarks]
 
     out_file = open("estimate_transform.txt", "w")
+
+    # now loop over every scan
     for i in range(len(logfile.scan_data)):
         # Compute the new pose.
-        pose = filter_step(pose, logfile.motor_ticks[i], ticks_to_mm, robot_width, scanner_displacement)
+        pose = filter_step(pose, logfile.motor_ticks[i],
+                           ticks_to_mm, robot_width,
+                           scanner_displacement)
 
         # Extract cylinders, also convert them to world coordinates.
         cartesian_cylinders = compute_scanner_cylinders(
             logfile.scan_data[i],
             depth_jump, minimum_valid_distance, cylinder_offset)
-        world_cylinders = [LegoLogfile.scanner_to_world(pose, c) for c in cartesian_cylinders]
+        # cartesian_cylinders is a list of tuples containing coordinates of cylinders in scanner coordinate system
+        world_cylinders = [LegoLogfile.scanner_to_world(pose, c)
+                           for c in cartesian_cylinders]
+        # world_cylinders is a list of tuples containing coordinates of world cylinders.
 
         # For every cylinder, find the closest reference cylinder.
-        cylinder_pairs = find_cylinder_pairs(world_cylinders, reference_cylinders, max_cylinder_distance)
+        cylinder_pairs = find_cylinder_pairs(
+            world_cylinders, reference_cylinders, max_cylinder_distance)
 
         # Estimate a transformation using the cylinder pairs.
         trafo = estimate_transform(
-            [world_cylinders[pair[0]] for pair in cylinder_pairs],
-            [reference_cylinders[pair[1]] for pair in cylinder_pairs],
+            [world_cylinders[pair[0]] for pair in cylinder_pairs],       # this creates a list of coordinates of detected world cylinders
+            [reference_cylinders[pair[1]] for pair in cylinder_pairs],   # this creates a list of coordinates of reference cylinders
             fix_scale = True)
 
         # Transform the cylinders using the estimated transform.
         transformed_world_cylinders = []
         if trafo:
             transformed_world_cylinders =\
-                [apply_transform(trafo, c) for c in [world_cylinders[pair[0]] for pair in cylinder_pairs]]            
+                [apply_transform(trafo, c) for c in
+                 [world_cylinders[pair[0]] for pair in cylinder_pairs]]            
 
         # Write to file.
         # The pose.
-        print("F %f %f %f" % pose, file=out_file)
+        out_file.write("F %f %f %f \n" % pose)
         # The detected cylinders in the scanner's coordinate system.
-        write_cylinders(out_file, "D C", cartesian_cylinders)
+        write_cylinders(out_file, "D C ", cartesian_cylinders)
         # The detected cylinders, transformed using the estimated trafo.
-        write_cylinders(out_file, "W C", transformed_world_cylinders)
+        write_cylinders(out_file, "W C ", transformed_world_cylinders)
 
     out_file.close()
-print("\n'estimate_transform.txt' file has been successfully create in the current working directory\n")
