@@ -7,4 +7,5 @@ The robot consists of a 2D LiDAR scanner as the main sensor and wheel encoders t
 
 ## Wheel encoder data:
 The wheel encoder data is collected in the *robot4_motors.txt* in the following format. 
+
 ![fd](/notes_stash/img3.png)
