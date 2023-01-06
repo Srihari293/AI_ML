@@ -8,7 +8,7 @@
 from lego_robot import *
 from slam_b_library import filter_step
 from slam_04_a_project_landmarks import\
-     compute_scanner_cylinders, write_cylinders
+    compute_scanner_cylinders, write_cylinders
 from math import sqrt, atan2
 
 # Given a list of cylinders (points) and reference_cylinders:
@@ -16,14 +16,32 @@ from math import sqrt, atan2
 # the index pair (i, j), where i is the index of the cylinder, and
 # j is the index of the reference_cylinder, to the result list.
 # This is the function developed in slam_04_b_find_cylinder_pairs.
+
+
 def find_cylinder_pairs(cylinders, reference_cylinders, max_radius):
     cylinder_pairs = []
 
-    # --->>> Insert your previous solution here.
+    for i, cyl in enumerate(cylinders):
+        x, y = cyl
+
+        closest_cyl = None
+        best_dis_squared = max_radius * max_radius
+
+        for j, ref in enumerate(reference_cylinders):
+            dx, dy = ref[0] - x, ref[1] - y
+            distance_squared = dx * dx + dy * dy
+            if distance_squared < best_dis_squared:
+                best_dis_squared = distance_squared
+                closest_cyl = j
+
+        if closest_cyl:
+            cylinder_pairs.append((i, closest_cyl))
 
     return cylinder_pairs
 
 # Given a point list, return the center of mass.
+
+
 def compute_center(point_list):
     # Safeguard against empty list.
     if not point_list:
@@ -40,18 +58,48 @@ def compute_center(point_list):
 # (scale, cos(angle), sin(angle), x_translation, y_translation)
 # i.e., the rotation angle is not given in radians, but rather in terms
 # of the cosine and sine.
-def estimate_transform(left_list, right_list, fix_scale = False):
+
+
+def estimate_transform(left_list, right_list, fix_scale=False):
     # Compute left and right center.
     lc = compute_center(left_list)
     rc = compute_center(right_list)
 
+    r_prime = [(r[0] - rc[0], r[1] - rc[1]) for r in right_list]
+    l_prime = [(l[0] - lc[0], l[1] - lc[1]) for l in left_list]
     # --->>> Insert your previous solution here.
+    ll = 0.
+    rr = 0.
+    cs = 0.
+    ss = 0.
+    for i in range(len(l_prime)):
+        l, r = l_prime[i], r_prime[i]
+        ll += (l[0]**2 + l[1]**2)
+        rr += (r[0]**2 + r[1]**2)
+        cs += r[0]*l[0] + r[1]*l[1]
+        ss += -r[0]*l[1] + r[1]*l[0]
+        
+    if ll == 0. or rr == 0.:
+        return None
+
+    if fix_scale:
+        la = 1
+    else:
+        la = sqrt(rr/ll)
+
+    norm = sqrt(cs**2 + ss**2)
+    c = cs/norm
+    s = ss/norm
+    tx = rc[0] - la * (lc[0] * c - lc[1] * s)
+    ty = rc[1] - la * (lc[0] * s + lc[1] * c)
 
     return la, c, s, tx, ty
 
 # Given a similarity transformation:
 # trafo = (scale, cos(angle), sin(angle), x_translation, y_translation)
 # and a point p = (x, y), return the transformed point.
+
+
 def apply_transform(trafo, p):
     la, c, s, tx, ty = trafo
     lac = la * c
@@ -63,11 +111,17 @@ def apply_transform(trafo, p):
 # Correct the pose = (x, y, heading) of the robot using the given
 # similarity transform. Note this changes the position as well as
 # the heading.
-def correct_pose(pose, trafo):
-    
-    # --->>> This is what you'll have to implement.
 
-    return (pose[0], pose[1], pose[2])  # Replace this by the corrected pose.
+
+def correct_pose(pose, trafo):
+
+    # --->>> This is what you'll have to implement.
+    trasnformed = apply_transform(trafo, pose)
+    _, c, s, _, _ = trafo
+    alpha = atan2(s, c)
+    new_theta = pose[2] + alpha
+    # Replace this by the corrected pose.
+    return (trasnformed[0], trasnformed[1], new_theta)
 
 
 if __name__ == '__main__':
@@ -76,7 +130,7 @@ if __name__ == '__main__':
     ticks_to_mm = 0.349
     robot_width = 150.0
 
-    # The constants we used for the cylinder detection in our scan.    
+    # The constants we used for the cylinder detection in our scan.
     minimum_valid_distance = 20.0
     depth_jump = 100.0
     cylinder_offset = 90.0
@@ -89,15 +143,15 @@ if __name__ == '__main__':
 
     # Read the logfile which contains all scans.
     logfile = LegoLogfile()
-    logfile.read("robot4_motors.txt")
-    logfile.read("robot4_scan.txt")
+    logfile.read(r"D:\Study\Code\Github\AI_ML\Courses\SLAM_and_path_planning\Unit-B\robot4_motors.txt")
+    logfile.read(r"D:\Study\Code\Github\AI_ML\Courses\SLAM_and_path_planning\Unit-B\robot4_scan.txt")
 
     # Also read the reference cylinders (this is our map).
-    logfile.read("robot_arena_landmarks.txt")
+    logfile.read(r"robot_arena_landmarks.txt")
     reference_cylinders = [l[1:3] for l in logfile.landmarks]
 
-    out_file = file("apply_transform.txt", "w")
-    for i in xrange(len(logfile.scan_data)):
+    out_file = open("apply_transform.txt", "w")
+    for i in range(len(logfile.scan_data)):
         # Compute the new pose.
         pose = filter_step(pose, logfile.motor_ticks[i],
                            ticks_to_mm, robot_width,
@@ -118,7 +172,7 @@ if __name__ == '__main__':
         trafo = estimate_transform(
             [world_cylinders[pair[0]] for pair in cylinder_pairs],
             [reference_cylinders[pair[1]] for pair in cylinder_pairs],
-            fix_scale = True)
+            fix_scale=True)
 
         # Transform the cylinders using the estimated transform.
         transformed_world_cylinders = []
@@ -130,10 +184,9 @@ if __name__ == '__main__':
         # Also apply the trafo to correct the position and heading.
         if trafo:
             pose = correct_pose(pose, trafo)
-
         # Write to file.
         # The pose.
-        print >> out_file, "F %f %f %f" % pose
+        print("F %f %f %f" % pose, file=out_file)
         # The detected cylinders in the scanner's coordinate system.
         write_cylinders(out_file, "D C", cartesian_cylinders)
         # The detected cylinders, transformed using the estimated trafo.
