@@ -1,7 +1,6 @@
 # Subsample the scan. For each point, find a closest point on the
 # wall of the arena.
 # 05_a_find_wall_pairs
-# Claus Brenner, 17 NOV 2012
 from lego_robot import *
 from slam_b_library import filter_step, compute_cartesian_coordinates
 from slam_04_a_project_landmarks import write_cylinders
@@ -9,25 +8,42 @@ from slam_04_a_project_landmarks import write_cylinders
 # Takes one scan and subsamples the measurements, so that every sampling'th
 # point is taken. Returns a list of (x, y) points in the scanner's
 # coordinate system.
-def get_subsampled_points(scan, sampling = 10):
+
+
+def get_subsampled_points(scan, sampling=10):
     # Subsample from scan
     index_range_tuples = []
-    for i in xrange(0, len(scan), sampling):
-        index_range_tuples.append( (i, scan[i]) )
+    for i in range(0, len(scan), sampling):
+        index_range_tuples.append((i, scan[i]))
     return compute_cartesian_coordinates(index_range_tuples, 0.0)
 
 # Given a set of points, checks for every point p if it is closer than
 # eps to the left, right, upper or lower wall of the arena. If so,
 # adds the point to left_list, and the closest point on the wall to
 # right_list.
+
+
 def get_corresponding_points_on_wall(points,
-                                     arena_left = 0.0, arena_right = 2000.0,
-                                     arena_bottom = 0.0, arena_top = 2000.0,
-                                     eps = 150.0):
+                                     arena_left=0.0, arena_right=2000.0,
+                                     arena_bottom=0.0, arena_top=2000.0,
+                                     eps=150.0):
     left_list = []
     right_list = []
 
     # ---> Implement your code here.
+    for point in points:
+        if point[0] - arena_left <= eps:
+            left_list.append(point)
+            right_list.append((arena_left, point[1]))
+        elif arena_right - point[0] <= eps:
+            left_list.append(point)
+            right_list.append((arena_right, point[1]))
+        elif arena_top - point[1] <= eps:
+            left_list.append(point)
+            right_list.append((point[0], arena_top))
+        elif point[1] - arena_bottom <= eps:
+            left_list.append(point)
+            right_list.append((point[0], arena_bottom))
 
     return left_list, right_list
 
@@ -43,12 +59,13 @@ if __name__ == '__main__':
 
     # Read the logfile which contains all scans.
     logfile = LegoLogfile()
-    logfile.read("robot4_motors.txt")
-    logfile.read("robot4_scan.txt")
+
+    logfile.read(r"D:\Study\Code\Github\AI_ML\Courses\SLAM_and_path_planning\Unit-B\robot4_motors.txt")
+    logfile.read(r"D:\Study\Code\Github\AI_ML\Courses\SLAM_and_path_planning\Unit-B\robot4_scan.txt")
 
     # Iterate over all positions.
-    out_file = file("find_wall_pairs.txt", "w")
-    for i in xrange(len(logfile.scan_data)):
+    out_file = open("find_wall_pairs.txt", "w")
+    for i in range(len(logfile.scan_data)):
         # Compute the new pose.
         pose = filter_step(pose, logfile.motor_ticks[i],
                            ticks_to_mm, robot_width,
@@ -64,7 +81,7 @@ if __name__ == '__main__':
 
         # Write to file.
         # The pose.
-        print >> out_file, "F %f %f %f" % pose
+        print("F %f %f %f" % pose, file=out_file)
         # Write the scanner points and corresponding points.
         write_cylinders(out_file, "W C", left + right)
 
