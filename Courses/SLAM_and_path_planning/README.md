@@ -3,7 +3,7 @@ This repository contains work pertaining to the SLAM and path planning course ta
 [Link to playlist](https://www.youtube.com/playlist?list=PLpUPoM7Rgzi_7YWn14Va2FODh7LzADBSm)
 
 ## Overview
-In this course we take a code first approach to learn about the techniques required to create an autonomous vechicle. We use a Legobot equipped with a LiDARs, motors, controller and caterpillar system. The goal is to learn and implement state of the art localization and mapping models to drive around in an arena with cylindrical obstacles.
+In this course we take a code first approach to learn about the algorithms and techniques required for Simultaneous Localization and Mapping. We use a Legobot equipped with a LiDARs, motors, controller and caterpillar system. The goal is to learn and implement state of the art localization and mapping models to drive around in an arena with cylindrical obstacles.
 |||
 |--|--|
 |![img1](notes_stash\img1.png)|![img1](notes_stash\img2.png)|
