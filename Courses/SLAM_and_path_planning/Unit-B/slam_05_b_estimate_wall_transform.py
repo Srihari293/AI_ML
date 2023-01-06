@@ -6,11 +6,8 @@
 from lego_robot import *
 from slam_b_library import filter_step
 from slam_04_a_project_landmarks import write_cylinders
-from slam_04_d_apply_transform_solution import\
-     estimate_transform, apply_transform, correct_pose
-from slam_05_a_find_wall_pairs_solution import\
-     get_subsampled_points, get_corresponding_points_on_wall
-
+from slam_04_d_apply_transform_question import estimate_transform, apply_transform, correct_pose
+from slam_05_a_find_wall_pairs_question import get_subsampled_points, get_corresponding_points_on_wall
 
 if __name__ == '__main__':
     # The constants we used for the filter_step.
@@ -23,12 +20,12 @@ if __name__ == '__main__':
 
     # Read the logfile which contains all scans.
     logfile = LegoLogfile()
-    logfile.read("robot4_motors.txt")
-    logfile.read("robot4_scan.txt")
+    logfile.read(r"D:\Study\Code\Github\AI_ML\Courses\SLAM_and_path_planning\Unit-B\robot4_motors.txt")
+    logfile.read(r"D:\Study\Code\Github\AI_ML\Courses\SLAM_and_path_planning\Unit-B\robot4_scan.txt")
 
     # Iterate over all positions.
-    out_file = file("estimate_wall_transform.txt", "w")
-    for i in xrange(len(logfile.scan_data)):
+    out_file = open("estimate_wall_transform.txt", "w")
+    for i in range(len(logfile.scan_data)):
         # Compute the new pose.
         pose = filter_step(pose, logfile.motor_ticks[i],
                            ticks_to_mm, robot_width,
@@ -52,7 +49,7 @@ if __name__ == '__main__':
 
         # Write to file.
         # The pose.
-        print >> out_file, "F %f %f %f" % pose
+        print("F %f %f %f" % pose, file=out_file)
         # Write the scanner points and corresponding points.
         write_cylinders(out_file, "W C", world_points)
 
