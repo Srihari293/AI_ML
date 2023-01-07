@@ -27,7 +27,7 @@ def convolve(a, b):
         new_offset += 1
     sum = Distribution.sum(distributions)
 
-    return sum  
+    return sum
 
 
 if __name__ == '__main__':
