@@ -65,13 +65,13 @@ if __name__ == '__main__':
 
     # This is the filter loop.
     for i in range(len(controls)):
-        # Move, by convolution. Also termed "prediction".
+        # Move, by convolution. Also termed "prediction". # We loose information because of this step
         control = Distribution.triangle(controls[i], 10)
         position = convolve(control, position)
         plot(position.plotlists(*arena)[0], position.plotlists(*arena)[1],
              color='b', drawstyle='steps')
 
-        # Measure, by multiplication. Also termed "correction".
+        # Measure, by multiplication. Also termed "correction". We gain information because of this step
         measurement = Distribution.triangle(measurements[i], 10)
         position = multiply(position, measurement)
         plot(position.plotlists(*arena)[0], position.plotlists(*arena)[1],
