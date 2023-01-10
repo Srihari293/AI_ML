@@ -56,3 +56,28 @@ The LiDAR scans the environment at a given interval. Plotting one such scan data
 |![](../assets/img14.png)|![](../assets/img13.png)|
 |--|--|
 |Environment visualization|Corresponding scan data|
+
+From the above plot, we can infer a few things. The value near 0 at 405 needs to be a better scan measurement. We will have a threshold to reject such measurements.
+
+Now we need a strategy to associate the cylinders from the scan data. The cylinders will cause a drop in the measurements and spikes when the lidar rays hit the wall.
+
+We can observe steep negative slopes when a cylinder is encountered and steep positive slopes when a cylinder is passed. If we take the derivative at their points and below a certain threshold will detect the beginning of a cylinder using a falling edge, and above a certain threshold, we will mark the end of a cylinder using a rising edge.
+
+How do we find the derivatives?
+We will use discrete masks to do so. 
+
+![](../assets/img15.png)
+
+But this function causes a phase shift, and hence we will use a slightly modified version of the above formula.
+
+![](../assets/img16.png)
+
+Plotting the derivative term along side the lidar scan data
+
+![](../assets/img17.png)
+
+|![](../assets/img18.png)|![](../assets/img19.png)|
+|--|--|
+
+When we zoom and probe further we can see that the rising and falling edges need a threshold of +-100 and it also ignores random peaks.
+
