@@ -34,7 +34,7 @@ We use the bicycle model to represent our robot motion.
 **c**: Center around which the robot turns
 
 ### Algorithm for position and heading
-#### Circular motion: != l or $\alpha$ is not 0
+#### Circular motion: r != l or $\alpha$ is not 0
 ![](../assets/img9.png)
 
 #### Straight motion: r == l
