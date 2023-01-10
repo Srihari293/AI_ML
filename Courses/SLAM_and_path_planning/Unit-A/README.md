@@ -41,3 +41,6 @@ We use the bicycle model to represent our robot motion.
 ![](../assets/img10.png)
 
 ## LiDAR data
+Before starting the Lidar data analysis, we have to account for the difference between the LiDAR position and referance frame we use for the bicycle model. 
+
+### Plotting motor ticks and measurement model
