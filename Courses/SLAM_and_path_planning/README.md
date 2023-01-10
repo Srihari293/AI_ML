@@ -10,6 +10,9 @@ In this course we take a code first approach to learn about the algorithms and t
 |||
 ## Table of Contents
 [1. Unit A - Motion model, Landmark Detection and LiDAR data analysis](https://github.com/Srihari293/AI_ML/tree/main/Courses/SLAM_and_path_planning/Unit-A)
+[2. Unit B - Position estimation and Iterative Close Point algrithm](https://github.com/Srihari293/AI_ML/tree/main/Courses/SLAM_and_path_planning/Unit-B)
+[3. Unit C - Bayes Filter and 1D Kalman Filter](https://github.com/Srihari293/AI_ML/tree/main/Courses/SLAM_and_path_planning/Unit-C)
+[4. Unit D - Covariance and Error Elipses, Multidimensional Kalman Filter, Extended Kalman Filter](https://github.com/Srihari293/AI_ML/tree/main/Courses/SLAM_and_path_planning/Unit-D)
 
 ## Requirements
 1. Python 3
