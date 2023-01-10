@@ -81,3 +81,35 @@ Plotting the derivative term along side the lidar scan data
 
 When we zoom and probe further we can see that the rising and falling edges need a threshold of +-100 and it also ignores random peaks.
 
+## Problems we have to consider
+### 1. Cylinder behind a cylinder
+There might be a situation where the laser scans hit two cylinders with no gap which will result in two consecutive left edges (or right edges). Over model strictly assumes that a rising edge is followed by a falling edge.
+
+![](../assets/img20.png)
+
+As a work around, a potential solution is to take the average depth and average ray positions. It gives us the following result.
+
+**Algorithm**
+```
+while (on cylinder){
+    1. calculate derivative 'd'
+    2. if 'd' <= -thershold then reset counters
+    3. else update counters [number of rays, sum of rays value, sum of depths] if ray > some_threshold.
+    4. if 'd' > threshold then this marks the end of the cylinder => compute average depth & average ray value.
+}
+```
+|![](../assets/img21.png)|![](../assets/img22.png)|
+|--|--|
+
+### 2. Cylinder offset
+|![](../assets/img23.png)|![](../assets/img24.png)|
+|--|--|
+
+We have to consider the thickness of the cylinder while computing the derivatives of the depth. The radius of the cylinder causes an offset in the measured position of the cylinder from the scan data.
+
+## Final trajectory
+After all the above corrections and computation, we get the following plot whem we plot reference trajectory, sensor trajectory, LiDAR scan points, Absolute landmark positon and computed cylinder positions.
+
+![](../assets/img25.png)
+
+Main take away is that when we turn for the first time, the error in measurement starts to begin. Correspondingly, we also loose track of all landmarks when we turn. This could be one reason why there is a measurement error.
