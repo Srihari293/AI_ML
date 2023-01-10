@@ -43,4 +43,16 @@ We use the bicycle model to represent our robot motion.
 ## LiDAR data
 Before starting the Lidar data analysis, we have to account for the difference between the LiDAR position and referance frame we use for the bicycle model. 
 
-### Plotting motor ticks and measurement model
+### Plotting motor ticks and external measurements
+![](../assets/img11.png)
+
+We can observe a drift in the sensor measurement when compared to the external measurements. The deviation seems to start when the robot starts to turn. Part of this can be fixed by calibrating the baseline. A width of 173 seemed to be most suitable.
+
+![](../assets/img12.png)
+
+### Plotting LiDAR data
+The LiDAR scans the environment at a given interval. Plotting one such scan data we observe the following.
+
+|![](../assets/img14.png)|![](../assets/img13.png)|
+|--|--|
+|Environment visualization|Corresponding scan data|
