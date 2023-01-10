@@ -24,7 +24,7 @@ We use the bicycle model to represent our robot motion.
 ### Derivation and Schematics
 ![](../assets/img6.png)
 ![](../assets/img7.png)
-![](../assets/img8.png)
+![](../assets/img8.png)  
 **R**: Radius of circular path  
 **l**: Length of the circular path of the left wheel   
 **r**: Length of the circular path of the right wheel  
