@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
     # Read data.
     logfile = LegoLogfile()
-    logfile.read("Unit_D/robot4_motors.txt")
+    logfile.read(r"C:\Users\sriha\OneDrive\Documents\Code\AI_ML\Courses\SLAM_and_path_planning\Unit-D\robot4_motors.txt")
 
     # Loop over all motor tick records and generate a filtered position list.
     states = []
@@ -53,7 +53,7 @@ if __name__ == '__main__':
         states.append(state)
 
     # Write all states to file.
-    f = open("Unit_D/states_from_ticks.txt", "w")
+    f = open("Unit-D/states_from_ticks.txt", "w")
     for s in states:
         # Output the center of the scanner, not the center of the robot.
         print("F %f %f %f" % tuple(s + [scanner_displacement * cos(s[2]),

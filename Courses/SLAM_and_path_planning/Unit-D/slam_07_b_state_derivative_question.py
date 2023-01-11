@@ -9,6 +9,7 @@ from numpy import *
 
 class ExtendedKalmanFilter:
 
+
     @staticmethod
     def g(state, control, w):
         x, y, theta = state
@@ -30,8 +31,10 @@ class ExtendedKalmanFilter:
     def dg_dstate(state, control, w):
         theta = state[2]
         l, r = control
-        if r != l:
+        alpha = (r-l)/w
 
+        if r != l:
+            rad = l/alpha
             # --->>> Put your code here.
             # This is for the case r != l.
             # g has 3 components and the state has 3 components, so the
@@ -40,13 +43,16 @@ class ExtendedKalmanFilter:
             # use: m = array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
             # where 1, 2, 3 are the values of the first row of the matrix.
             # Don't forget to return this matrix.
-            m = array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])  # Replace this.
+            m = array([[1, 0, (rad + w/2.)*(cos(theta+alpha)-cos(theta))],
+                       [0, 1, (rad + w/2.)*(sin(theta+alpha)-sin(theta))],
+                       [0, 0, 1]]) 
 
         else:
-
             # --->>> Put your code here.
             # This is for the special case r == l.
-            m = array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])  # Replace this.
+            m = array([[1, 0, -l*sin(theta)],
+                       [0, 1, l*cos(theta)],
+                       [0, 0, 1]]) 
 
         return m
 
@@ -68,27 +74,30 @@ if __name__ == '__main__':
     w = 150.0
 
     # Compute derivative numerically.
-    print "Numeric differentiation dx, dy, dtheta:"
+    print("Numeric differentiation dx, dy, dtheta:")
     delta = 1e-7
     state_x = array([x + delta, y, theta])
     state_y = array([x, y + delta, theta])
     state_theta = array([x, y, theta + delta])
-    dg_dx = (ExtendedKalmanFilter.g(state_x, control, w) -\
+    dg_dx = (ExtendedKalmanFilter.g(state_x, control, w) -
              ExtendedKalmanFilter.g(state, control, w)) / delta
-    dg_dy = (ExtendedKalmanFilter.g(state_y, control, w) -\
+
+    dg_dy = (ExtendedKalmanFilter.g(state_y, control, w) -
              ExtendedKalmanFilter.g(state, control, w)) / delta
-    dg_dtheta = (ExtendedKalmanFilter.g(state_theta, control, w) -\
+
+    dg_dtheta = (ExtendedKalmanFilter.g(state_theta, control, w) -
                  ExtendedKalmanFilter.g(state, control, w)) / delta
+
     dg_dstate_numeric = column_stack([dg_dx, dg_dy, dg_dtheta])
-    print dg_dstate_numeric
+    print(dg_dstate_numeric)
 
     # Use the above code to compute the derivative analytically.
-    print "Analytic differentiation dx, dy, dtheta:"
+    print("Analytic differentiation dx, dy, dtheta:")
     dg_dstate_analytic = ExtendedKalmanFilter.dg_dstate(state, control, w)
-    print dg_dstate_analytic
+    print(dg_dstate_analytic)
 
     # The difference should be close to zero (depending on the setting of
     # delta, above).
-    print "Difference:"
-    print dg_dstate_numeric - dg_dstate_analytic
-    print "Seems correct:", allclose(dg_dstate_numeric, dg_dstate_analytic)
+    print("Difference:")
+    print(dg_dstate_numeric - dg_dstate_analytic)
+    print("Seems correct:", allclose(dg_dstate_numeric, dg_dstate_analytic))
