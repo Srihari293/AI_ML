@@ -3,9 +3,11 @@
 #
 # slam_07_c_control_derivative
 # Claus Brenner, 11.12.2012
+from os import altsep
 from lego_robot import *
 from math import sin, cos, pi
 from numpy import *
+
 
 class ExtendedKalmanFilter:
 
@@ -31,22 +33,25 @@ class ExtendedKalmanFilter:
         theta = state[2]
         l, r = tuple(control)
         if r != l:
-
-            # --->>> Put your code here.
+            alpha = (r - l) / w
             # This is for the case l != r.
             # Note g has 3 components and control has 2, so the result
             # will be a 3x2 (rows x columns) matrix.
-            pass  # Remove this.
-            
-            
+            m = array([[((w*r)/((r-l)**2)) * (sin(theta+alpha) - sin(theta)) - (r+l) * cos(theta+alpha)/(2.*(r-l)),
+                        (-1.*w*l/((r-l)**2))*(sin(theta+alpha) - sin(theta)) + (r+l) * cos(theta+alpha)/(2.*(r-l))],
+                       [(w*r/((r-l)**2))*(-1.*cos(theta+alpha) + cos(theta)) - (r+l) * sin(theta+alpha)/(2.*(r-l)),
+                        (-1.*w*l/((r-l)**2)) * (-1.*cos(theta+alpha)+cos(theta)) + (r+l) * sin(theta+alpha)/(2.*(r-l))],
+                       [-1./w, 1./w]
+                       ])
+
         else:
-
-            # --->>> Put your code here.
             # This is for the special case l == r.
-            pass  # Remove this.            
+            m = array([[.5*(cos(theta) + l/w * sin(theta)), .5*(-1.*l/w * sin(theta) + cos(theta))],
+                       [.5*(sin(theta) - l/w * cos(theta)), .5 *
+                        (l/w * cos(theta) + sin(theta))],
+                       [-1./w, 1./w]
+                       ])
 
-        m = array([[1, 2], [3, 4], [5, 6]])  # Remove this.
-            
         return m
 
 
@@ -67,24 +72,24 @@ if __name__ == '__main__':
     w = 150.0
 
     # Compute derivative numerically.
-    print "Numeric differentiation dl, dr"
+    print("Numeric differentiation dl, dr")
     delta = 1e-7
     control_l = array([l + delta, r])
     control_r = array([l, r + delta])
-    dg_dl = (ExtendedKalmanFilter.g(state, control_l, w) -\
+    dg_dl = (ExtendedKalmanFilter.g(state, control_l, w) -
              ExtendedKalmanFilter.g(state, control, w)) / delta
-    dg_dr = (ExtendedKalmanFilter.g(state, control_r, w) -\
+    dg_dr = (ExtendedKalmanFilter.g(state, control_r, w) -
              ExtendedKalmanFilter.g(state, control, w)) / delta
     dg_dcontrol_numeric = column_stack([dg_dl, dg_dr])
-    print dg_dcontrol_numeric
+    print(dg_dcontrol_numeric)
 
     # Use the above code to compute the derivative analytically.
-    print "Analytic differentiation dl, dr:"
+    print("Analytic differentiation dl, dr:")
     dg_dcontrol_analytic = ExtendedKalmanFilter.dg_dcontrol(state, control, w)
-    print dg_dcontrol_analytic
+    print(dg_dcontrol_analytic)
 
     # The difference should be close to zero (depending on the setting of
     # delta, above).
-    print "Difference:"
-    print dg_dcontrol_numeric - dg_dcontrol_analytic
-    print "Seems correct:", allclose(dg_dcontrol_numeric, dg_dcontrol_analytic)
+    print("Difference:")
+    print(dg_dcontrol_numeric - dg_dcontrol_analytic)
+    print("Seems correct:", allclose(dg_dcontrol_numeric, dg_dcontrol_analytic))
