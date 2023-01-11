@@ -8,6 +8,7 @@ from lego_robot import *
 from math import sin, cos, pi
 from numpy import *
 
+
 class ExtendedKalmanFilter:
 
     @staticmethod
@@ -39,7 +40,7 @@ if __name__ == '__main__':
 
     # Read data.
     logfile = LegoLogfile()
-    logfile.read("robot4_motors.txt")
+    logfile.read("Unit_D/robot4_motors.txt")
 
     # Loop over all motor tick records and generate a filtered position list.
     states = []
@@ -52,11 +53,10 @@ if __name__ == '__main__':
         states.append(state)
 
     # Write all states to file.
-    f = open("states_from_ticks.txt", "w")
+    f = open("Unit_D/states_from_ticks.txt", "w")
     for s in states:
         # Output the center of the scanner, not the center of the robot.
-        print >> f, "F %f %f %f" % \
-            tuple(s + [scanner_displacement * cos(s[2]),
-                       scanner_displacement * sin(s[2]),
-                       0.0])
+        print("F %f %f %f" % tuple(s + [scanner_displacement * cos(s[2]),
+                                        scanner_displacement * sin(s[2]),
+                                        0.0]), file=f)
     f.close()
