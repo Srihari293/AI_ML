@@ -48,8 +48,23 @@ class ParticleFilter:
     def predict(self, control):
         """The prediction step of the particle filter."""
 
-        # --->>> Put the code of a previous solution here.
-        pass  # Remove.
+        left, right = control
+        alpha_1 = self.control_motion_factor
+        alpha_2 = self.control_turn_factor
+
+        left_variance = (alpha_1*left)**2 + (alpha_2 * (right-left))**2
+        right_variance = (alpha_1*right)**2 + (alpha_2*(right-left))**2
+
+        particles = []
+        for particle in self.particles:
+            sampled_left = random.gauss(left, sqrt(left_variance))
+            sampled_right = random.gauss(right, sqrt(right_variance))
+
+            predicted_particle = self.g(particle, (sampled_left, sampled_right), self.robot_width)
+            particles.append(predicted_particle)
+        
+        self.particles = particles
+
 
     # Measurement. This is exactly the same method as in the Kalman filter.
     @staticmethod
@@ -66,21 +81,59 @@ class ParticleFilter:
         """Given a measurement and a predicted measurement, computes
            probability."""
 
-        # --->>> Put the code of a previous solution here.
-        pass  # Remove.
+        distances_differences = abs(measurement[0] - predicted_measurement[0])
+        angles_differences = (predicted_measurement[1] - measurement[1] + pi)%(2*pi) - pi
+
+        p_distance = normal_dist.pdf(distances_differences, 0, self.measurement_distance_stddev)
+        p_alpha = normal_dist.pdf(angles_differences, 0, self.measurement_angle_stddev)
+
+        return p_distance*p_alpha
+        
 
     def compute_weights(self, cylinders, landmarks):
         """Computes one weight for each particle, return list of weights."""
 
-        # --->>> Put the code of a previous solution here.
-        pass  # Remove.
+        # weights = p(measurement|state)
+        weights = []
+        for particle in self.particles:
+            # assign predicted cylinders to the closest landmark
+            #[((range_0, bearing_0), (landmark_x, landmark_y))]
+            assigned_cylinders = assign_cylinders(cylinders, particle, self.scanner_displacement, landmarks)
+            # for each measurement calculate its probability given the current
+            # state (particle) and multiply all probabilities
+            weight = 1.
+            for measurement in assigned_cylinders:
+                # get range and bearing of the landmark
+                landmark = self.h(particle, measurement[1], self.scanner_displacement)
+                # compute probability
+                weight *= self.probability_of_measurement(measurement[0], landmark)
+
+            weights.append(weight)
+
+        return weights
 
     def resample(self, weights):
         """Return a list of particles which have been resampled, proportional
            to the given weights."""
-
-        # --->>> Put the code of a previous solution here.
-        pass  # Remove.
+        particles = []
+        # resampling wheel
+        length = len(weights)
+        maximum_weight = max(weights)
+        # 1. start with random index
+        idx = random.randint(0, length-1)
+        offset = 0.
+        # 2. get 'length' samples
+        for i in range(length):
+            # get random offset within 0, 2*maximum_weight
+            offset += random.uniform(0, 2.*maximum_weight)
+            # serach for the weight associated with the offset
+            while offset > weights[idx]:
+                offset -= weights[idx]
+                idx = (idx+1)%length
+            # append the weighted sampled particle
+            particles.append(self.particles[idx])
+        
+        return particles
 
     def correct(self, cylinders, landmarks):
         """The correction step of the particle filter."""
@@ -93,17 +146,33 @@ class ParticleFilter:
         """Prints particles to given file_desc output."""
         if not self.particles:
             return
-        print >> file_desc, "PA",
+        print("PA", file=file_desc, end=" ")
         for p in self.particles:
-            print >> file_desc, "%.0f %.0f %.3f" % p,
-        print >> file_desc
+            print("%.0f %.0f %.3f" % p, file=file_desc, end=" ")
+        
+        print("", file=file_desc)
 
     def get_mean(self):
         """Compute mean position and heading from all particles."""
 
         # --->>> This is the new code you'll have to implement.
+        mean_x = 0.
+        mean_y = 0.
+        # mean heading vector
+        mean_cos = 0.
+        mean_sin = 0.
+        length = len(self.particles)
+        for particle in self.particles:
+            x, y, theta = particle
+            mean_x += x
+            mean_y += y
+
+            mean_cos += cos(theta)
+            mean_sin += sin(theta)
+
+
         # Return a tuple: (mean_x, mean_y, mean_heading).
-        return (0.0, 0.0, 0.0)  # Replace this.
+        return (mean_x/length, mean_y/length, atan2(mean_sin, mean_cos))  # Replace this.
 
 
 if __name__ == '__main__':
@@ -128,10 +197,10 @@ if __name__ == '__main__':
     measured_state = (1850.0, 1897.0, 213.0 / 180.0 * pi)
     standard_deviations = (100.0, 100.0, 10.0 / 180.0 * pi)
     initial_particles = []
-    for i in xrange(number_of_particles):
+    for i in range(number_of_particles):
         initial_particles.append(tuple([
             random.gauss(measured_state[j], standard_deviations[j])
-            for j in xrange(3)]))
+            for j in range(3)]))
 
     # Setup filter.
     pf = ParticleFilter(initial_particles,
@@ -142,15 +211,15 @@ if __name__ == '__main__':
 
     # Read data.
     logfile = LegoLogfile()
-    logfile.read("robot4_motors.txt")
-    logfile.read("robot4_scan.txt")
-    logfile.read("robot_arena_landmarks.txt")
+    logfile.read(r"C:\Users\sriha\OneDrive\Documents\Code\AI_ML\Courses\SLAM_and_path_planning\Unit-D\robot4_motors.txt")
+    logfile.read(r"C:\Users\sriha\OneDrive\Documents\Code\AI_ML\Courses\SLAM_and_path_planning\Unit-D\robot4_scan.txt")
+    logfile.read(r"C:\Users\sriha\OneDrive\Documents\Code\AI_ML\Courses\SLAM_and_path_planning\Unit-D\robot_arena_landmarks.txt")
     reference_cylinders = [l[1:3] for l in logfile.landmarks]
 
     # Loop over all motor tick records.
     # This is the particle filter loop, with prediction and correction.
-    f = open("particle_filter_mean.txt", "w")
-    for i in xrange(len(logfile.motor_ticks)):
+    f = open("Unit-E/particle_filter_mean.txt", "w")
+    for i in range(len(logfile.motor_ticks)):
         # Prediction.
         control = map(lambda x: x * ticks_to_mm, logfile.motor_ticks[i])
         pf.predict(control)
@@ -165,9 +234,9 @@ if __name__ == '__main__':
         
         # Output state estimated from all particles.
         mean = pf.get_mean()
-        print >> f, "F %.0f %.0f %.3f" %\
+        print ("F %.0f %.0f %.3f" %\
               (mean[0] + scanner_displacement * cos(mean[2]),
                mean[1] + scanner_displacement * sin(mean[2]),
-               mean[2])
+               mean[2]), file=f)
 
     f.close()
