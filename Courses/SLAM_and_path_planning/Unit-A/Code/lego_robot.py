@@ -1,6 +1,3 @@
-# Python routines useful for handling ikg's LEGO robot data.
-# Author: Claus Brenner, 28.10.2012
-
 # In previous versions, the S record included the number of scan points.
 # If so, set this to true.
 s_record_has_count = True

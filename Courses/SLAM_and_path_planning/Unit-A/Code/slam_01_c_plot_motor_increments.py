@@ -5,6 +5,6 @@ from pylab import *
 if __name__ == '__main__':
 
     logfile = LegoLogfile()
-    logfile.read(r"Unit-A\Data\robot4_motors.txt")
+    logfile.read(r"Data\robot4_motors.txt")
     plot(logfile.motor_ticks)
     show()

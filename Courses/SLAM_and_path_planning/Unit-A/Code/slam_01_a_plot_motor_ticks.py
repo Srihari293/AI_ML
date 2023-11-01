@@ -8,7 +8,7 @@ if __name__ == '__main__':
     # Format:
     # M | timestamp[in ms] | pos-left[in ticks] | * | * | * | pos-right[in ticks] | ...
 
-    with open(r"Unit-A\Data\robot4_motors.txt", "r") as f:
+    with open(r"Data\robot4_motors.txt", "r") as f:
         left_list = []
         right_list = []
         for line in f:
